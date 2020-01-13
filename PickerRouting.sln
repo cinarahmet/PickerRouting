@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.329
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PickerRouting", "PickerRouting\PickerRouting.csproj", "{B85B91BE-A61E-4020-BE3D-5C2B5A068ECA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B85B91BE-A61E-4020-BE3D-5C2B5A068ECA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B85B91BE-A61E-4020-BE3D-5C2B5A068ECA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B85B91BE-A61E-4020-BE3D-5C2B5A068ECA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B85B91BE-A61E-4020-BE3D-5C2B5A068ECA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E7B23A62-BDAB-4C51-9B47-032792548344}
+	EndGlobalSection
+EndGlobal
