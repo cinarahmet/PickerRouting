@@ -8,12 +8,13 @@ namespace PickerRouting
 {
     public class SQLReader
     {
-        private String ID = "TL571210";
+        private String ID;
         private List<String> _locations;
         private List<String> _originalLocations;
         private Dictionary<String, Dictionary<String, Double>> _DistanceMatrix;
         private String _connectionString;
         private Double _totalDistance;
+        private bool sameSize;
 
         public double TotalDistance { get => _totalDistance; set => _totalDistance = value; }
 
@@ -28,12 +29,21 @@ namespace PickerRouting
                 "Persist Security Info = True;" +
                 "User ID = access_user;" +
                 "Password = @cS_905/*_";
+            sameSize = true;
         }
         public void Read()
         {
             ReadLocations();
             ReadDistanceMatrix();
             ReadOriginalPickLocations();
+            if (_locations.Count != _DistanceMatrix.Count || _locations == null)
+            {
+                sameSize = false;
+            }
+            else
+            {
+                CalculateOriginalRouteDistance();
+            }
         }
         private void ReadLocations()
         {
@@ -225,10 +235,9 @@ namespace PickerRouting
             return _originalLocations;
         }
 
-        public void CalculateOriginalRouteDistance(Int32 n)
+        private void CalculateOriginalRouteDistance()
         {
             var totalDistance = 0.0;
-            _originalLocations = _originalLocations.Take(n).ToList();
             for (int i = 0; i < _originalLocations.Count-1; i++)
             {
                 var localDistance = _DistanceMatrix[_originalLocations[i]][_originalLocations[i + 1]];
@@ -240,6 +249,11 @@ namespace PickerRouting
         public Double GetRouteDistance()
         {
             return _totalDistance;
+        }
+
+        public bool CheckDimensions()
+        {
+            return sameSize;
         }
 
     }

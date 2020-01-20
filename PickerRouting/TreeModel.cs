@@ -51,7 +51,7 @@ namespace PickerRouting
         /// <summary>
         /// Time limit is given in seconds.
         /// </summary>
-        private readonly long _timeLimit = 600;
+        private readonly long _timeLimit = 4500;
 
         /// <summary>
         /// How many seconds the solver worked..

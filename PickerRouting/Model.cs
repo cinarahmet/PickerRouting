@@ -19,7 +19,7 @@ namespace PickerRouting
         /// d[i,j] denotes distance from location i to location j
         /// </summary>
         private readonly Dictionary<String, Dictionary<String, Double>> d;
-
+        
         private List<String> _locations;
 
         private int _startIndex;
@@ -53,12 +53,14 @@ namespace PickerRouting
         /// <summary>
         /// Time limit is given in seconds.
         /// </summary>
-        private readonly long _timeLimit = 600;
+        private long _timeLimit = 60;
 
         /// <summary>
         /// How many seconds the solver worked..
         /// </summary>
         private double _solutionTime;
+
+        private double _objValue;
 
         /// <summary>
         /// Number of pick locations
@@ -67,11 +69,14 @@ namespace PickerRouting
 
         private int M = 10000;
 
-        public Model(List<String> locations, Dictionary<String, Dictionary<String, Double>> distance)
+        private Double _epsilon = 0.00001;
+
+        public Model(List<String> locations, Dictionary<String, Dictionary<String, Double>> distance, long timeLimit)
         {
+            _timeLimit = timeLimit;
             _solver = new Cplex();
             _solver.SetParam(Cplex.DoubleParam.TiLim, _timeLimit);
-            //_solver.SetOut(null);
+            _solver.SetOut(null);
 
             _locations = locations;//.Take(10).ToList();
 
@@ -89,9 +94,9 @@ namespace PickerRouting
         /// <summary>
         /// Run method where the running engine is triggered.
         /// </summary>
-        public void Run()
+        public void Run(int startIndex)
         {
-            BuildModel();
+            BuildModel(startIndex);
             Solve();
             if (!(_status == Cplex.Status.Optimal || _status == Cplex.Status.Feasible))
             {
@@ -109,12 +114,12 @@ namespace PickerRouting
         /// 2. Create objective function
         /// 3. Create constraints
         /// </summary>
-        private void BuildModel()
+        private void BuildModel(int startIndex)
         {
             Console.WriteLine("Model construction starts at {0}", DateTime.Now);
             CreateDecisionVariables();
             CreateObjective();
-            CreateConstraints();
+            CreateConstraints(startIndex);
             Console.WriteLine("Model construction ends at {0}", DateTime.Now);
         }
 
@@ -196,9 +201,9 @@ namespace PickerRouting
             _solver.AddMinimize(_objective);
         }
 
-        private void CreateConstraints()
+        private void CreateConstraints(int startIndex)
         {
-            LeavingFromTheStartingLocation();
+            LeavingFromTheStartingLocation(startIndex);
             EnteringIntoLastLocation();
             Nonnegativity();
             EachNodeMustBeVisitedOnce();
@@ -206,13 +211,15 @@ namespace PickerRouting
             SubTourEleminationConstraint();
         }
 
-        private void LeavingFromTheStartingLocation()
+        private void LeavingFromTheStartingLocation(int startIndex)
         {
             var constraint = _solver.LinearNumExpr();
 
+            startIndex = (startIndex == -1) ? 0 : 1;
+
             for (int j = 1; j < N; j++)
             {
-                constraint.AddTerm(1, _x[0][j]);
+                constraint.AddTerm(1, _x[startIndex][j]);
             }
             _solver.AddEq(constraint, 1);
         }
@@ -323,7 +330,7 @@ namespace PickerRouting
             for (int i = 0; i < N; i++)
             {
                 var x_ij = _solver.GetValue(_x[index][i]);
-                if (x_ij == 1)
+                if (x_ij >= 1.0 - _epsilon)
                 {
                     result = _locations[i];
                 }
@@ -346,14 +353,36 @@ namespace PickerRouting
             var end = _locations[_endIndex];
             _route.Add(end);
 
-            foreach (var element in _route)
-                Console.WriteLine(element);
+            //foreach (var element in _route)
+            //    Console.WriteLine(element);
         }
+
+        public List<string> GetFirstNLocation(int firstN)
+        {
+            return _route.Take(firstN).ToList();
+        }
+
+        public bool GetStatus()
+        {
+            return _solver.GetStatus() == Cplex.Status.Feasible;
+        }
+
+        public double GetObjectiveValue()
+        {
+            return _objValue;
+        }
+
+        public List<string> GetRoute()
+        {
+            return _route;
+        }
+
+
         private void Print()
         {
-            var objValue = _solver.GetObjValue();
+            _objValue = _solver.GetObjValue();
             _status = _solver.GetStatus();
-            Console.WriteLine("Objective Value is: {0}", objValue);
+            Console.WriteLine("Objective Value is: {0}", _objValue);
             Console.WriteLine("Solution Status is: {0}", _status);
 
             //for (int i = 0; i < N; i++)
