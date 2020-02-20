@@ -53,11 +53,11 @@ namespace PickerRouting
 
         private bool sameSize;
 
-        StreamWriter objectives = new StreamWriter("C:/Users/yahya.geckil/Desktop/PickerRouting/objectives2.csv");
+        StreamWriter objectives = new StreamWriter("C:/Users/yahya.geckil/Desktop/objectives11.csv");
 
-        StreamWriter file = new StreamWriter("C:/Users/yahya.geckil/Desktop/PickerRouting/routes2.csv");
+        StreamWriter file = new StreamWriter("C:/Users/yahya.geckil/Desktop/routes11.csv");
 
-        StreamWriter baseRoute = new StreamWriter("C:/Users/yahya.geckil/Desktop/PickerRouting/baseRoute2.csv");
+        StreamWriter baseRoute = new StreamWriter("C:/Users/yahya.geckil/Desktop/baseRoute11.csv");
 
         public Test(string fileLocation, int firstN)
         {
@@ -69,7 +69,7 @@ namespace PickerRouting
 
             _baseTimeLimit = 10;
 
-            _testTimeLimit = 120;
+            _testTimeLimit = 60;
 
             _baseModelSequences = new Dictionary<string, List<double>>();
 
@@ -95,19 +95,21 @@ namespace PickerRouting
                 {
                     _originalRouteDistances.Add(id, originalRouteDistance);
 
-                    RunBaseModel();
-                    _baseModelSequences.Add(id, _baseModelSequence);
-                    _baseModelObjValues.Add(id, _objValue);
-                    _baseModelRoutes.Add(id, _baseModelRoute);
-                    
                     RunTestModel();
-                    _testRoutes.Add(id, _testRoute);
-                    _testModelObjValues.Add(id, _objValue);
+                    if (_testRoute.Count == originalLocations.Count)
+                    {
+                        _baseModelSequences.Add(id, _baseModelSequence);
+                        _baseModelObjValues.Add(id, _objValue);
+                        _baseModelRoutes.Add(id, _baseModelRoute);
 
-                    WriteToCsv(id);
+                        _testRoutes.Add(id, _testRoute);
+                        _testModelObjValues.Add(id, _objValue);
+
+                        WriteToCsv(id);
+                    }
+                    
                 }
             }
-
         }
 
         private void ReadPickListIds()
@@ -147,7 +149,6 @@ namespace PickerRouting
         private void RunTestModel()
         {
             _testRoute = new List<string>();
-            string[] freezed = new string[_firstN];
             bool isFeasible = true;
             long timeLimit = _baseTimeLimit;
             var startIndex= -1;
@@ -156,6 +157,14 @@ namespace PickerRouting
                 var model = new Model(locations, d, timeLimit);
                 Console.WriteLine("Iteration: {0}\t|Locations|: {1}", iteration, locations.Count);
                 model.Run(startIndex);
+                string[] freezed = new string[_firstN+1];
+                if (iteration == 1)
+                {
+                    _baseModelSequence = model.GetSequence();
+                    _baseModelRoute = model.GetRoute();
+                    _objValue = model.GetObjectiveValue();
+                    freezed = new string[_firstN];
+                }
                 isFeasible = model.GetStatus();
                 if (isFeasible)
                 {
@@ -167,7 +176,7 @@ namespace PickerRouting
                     continue;
                 }
 
-                freezed = model.GetFirstNLocation(locations.Count).ToArray();
+                freezed = model.GetFirstNLocation(locations.Count-1).ToArray();
                 _testRoute.AddRange(freezed);
                 break;
             }
@@ -183,7 +192,6 @@ namespace PickerRouting
             {
                 _objValue += d[_testRoute[i]][_testRoute[i + 1]];
             }
-
             Console.WriteLine("Tested Objective: {0}", _objValue);
         }
 

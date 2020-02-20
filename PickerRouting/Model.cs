@@ -151,7 +151,7 @@ namespace PickerRouting
                     var lb_x = 0;
                     var ub_x = 1;
 
-                    var name = String.Format("x[{0}{1}]", (i + 1), (j + 1));
+                    var name = String.Format("x[{0}][{1}]", (i + 1), (j + 1));
                     
                     if (i == j)
                     {
@@ -168,14 +168,14 @@ namespace PickerRouting
             {
                 var lb = 1;
                 var ub = N + 1;
-                if (i == 0)
-                {
-                    ub = 1;
-                }
-                if (i == N - 1)
-                {
-                    lb = N + 1;
-                }
+                //if (i == 0)
+                //{
+                //    ub = 1;
+                //}
+                //if (i == N - 1)
+                //{
+                //    lb = N + 1;
+                //}
                 var a_i = _solver.NumVar(lb, ub, NumVarType.Int);
                 _a.Add(a_i);
             }
@@ -203,21 +203,20 @@ namespace PickerRouting
 
         private void CreateConstraints(int startIndex)
         {
+            startIndex = (startIndex == -1) ? 0 : startIndex;
             LeavingFromTheStartingLocation(startIndex);
             EnteringIntoLastLocation();
             Nonnegativity();
-            EachNodeMustBeVisitedOnce();
-            EachNodeMustBeLeftOnce();
+            EachNodeMustBeVisitedOnce(startIndex);
+            EachNodeMustBeLeftOnce(startIndex);
             SubTourEleminationConstraint();
         }
 
         private void LeavingFromTheStartingLocation(int startIndex)
         {
             var constraint = _solver.LinearNumExpr();
-
-            startIndex = (startIndex == -1) ? 0 : 1;
-
-            for (int j = 1; j < N; j++)
+            
+            for (int j = 0; j < N; j++)
             {
                 constraint.AddTerm(1, _x[startIndex][j]);
             }
@@ -235,10 +234,14 @@ namespace PickerRouting
             _solver.AddEq(constraint, 1);
         }
 
-        private void EachNodeMustBeVisitedOnce()
+        private void EachNodeMustBeVisitedOnce(int startIndex)
         {
-            for (int i = 1; i < N-1; i++)
+            for (int i = 0; i < N-1; i++)
             {
+                if (i == startIndex)
+                {
+                    continue;
+                }
                 var constraint = _solver.LinearNumExpr();
                 for (int j = 0; j < N-1; j++)
                 {
@@ -248,14 +251,18 @@ namespace PickerRouting
             }
         }
 
-        private void EachNodeMustBeLeftOnce()
+        private void EachNodeMustBeLeftOnce(int startIndex)
         {
-            for (int i = 1; i < N-1; i++)
+            for (int i = 0; i < N-1; i++)
             {
                 var constraint = _solver.LinearNumExpr();
 
-                for (int j = 1; j < N; j++)
+                for (int j = 0; j < N; j++)
                 {
+                    if (j==startIndex)
+                    {
+                        continue;
+                    }
                     constraint.AddTerm(1, _x[i][j]);
                 }
                 _solver.AddEq(constraint, 1);
