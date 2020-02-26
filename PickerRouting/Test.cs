@@ -53,11 +53,11 @@ namespace PickerRouting
 
         private bool sameSize;
 
-        StreamWriter objectives = new StreamWriter("C:/Users/yahya.geckil/Desktop/objectives11.csv");
+        StreamWriter objectives = new StreamWriter("C:/Users/cagri.iyican/Desktop/objectives11.csv");
 
-        StreamWriter file = new StreamWriter("C:/Users/yahya.geckil/Desktop/routes11.csv");
+        StreamWriter file = new StreamWriter("C:/Users/cagri.iyican/Desktop/routes11.csv");
 
-        StreamWriter baseRoute = new StreamWriter("C:/Users/yahya.geckil/Desktop/baseRoute11.csv");
+        StreamWriter baseRoute = new StreamWriter("C:/Users/cagri.iyican/Desktop/baseRoute11.csv");
 
         public Test(string fileLocation, int firstN)
         {
