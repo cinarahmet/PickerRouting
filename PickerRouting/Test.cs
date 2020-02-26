@@ -53,11 +53,11 @@ namespace PickerRouting
 
         private bool sameSize;
 
-        StreamWriter objectives = new StreamWriter("C:/Users/yahya.geckil/Desktop/objectives11.csv");
+        StreamWriter objectives = new StreamWriter("C:/Workspace/PickerRouting/crobjectives.csv");
 
-        StreamWriter file = new StreamWriter("C:/Users/yahya.geckil/Desktop/routes11.csv");
+        StreamWriter file = new StreamWriter("C:/Workspace/PickerRouting/crroutes.csv");
 
-        StreamWriter baseRoute = new StreamWriter("C:/Users/yahya.geckil/Desktop/baseRoute11.csv");
+        StreamWriter baseRoute = new StreamWriter("C:/Workspace/PickerRouting/crbaseRoute.csv");
 
         public Test(string fileLocation, int firstN)
         {
@@ -67,9 +67,9 @@ namespace PickerRouting
 
             _firstN = firstN;
 
-            _baseTimeLimit = 10;
+            _baseTimeLimit = 2;
 
-            _testTimeLimit = 60;
+            _testTimeLimit = 120;
 
             _baseModelSequences = new Dictionary<string, List<double>>();
 
@@ -198,6 +198,8 @@ namespace PickerRouting
         private void WriteToCsv(string id)
         {
             objectives.Write(id);
+            objectives.Write(",");
+            objectives.Write(_originalRouteDistances[id]);
             objectives.Write(",");
             objectives.Write(_baseModelObjValues[id]);
             objectives.Write(",");

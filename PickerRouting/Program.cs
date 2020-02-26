@@ -10,7 +10,7 @@ namespace PickerRouting
     {
         static void Main(string[] args)
         {
-            Test test = new Test(@"C:\Users\yahya.geckil\Desktop\Yahya Veri.csv", 10);
+            Test test = new Test(@"C:\Workspace\PickerRouting\veri.csv", 10);
             test.Run();
         }
 
