@@ -95,7 +95,7 @@ namespace PickerRouting
         {
             Build_Model();
             Solve();
-            Subtours();
+            Patching_Heuristic();
             Print();
         }
 
@@ -193,8 +193,8 @@ namespace PickerRouting
                     if (visitedlocations[j].First().Key==searchkey)
                     {                       
                         routes.Add(visitedlocations[j].First().Value);
-                        searchkey = visitedlocations[j].First().Value;
-                        visitedlocations.Remove(visitedlocations[j]);
+                        searchkey=visitedlocations[j].First().Value;
+                        //visitedlocations.Remove(visitedlocations[j]);
                         //visitedlocations.Remove(visitedlocations[i]);
                         j = -1;
                         if (routes[0] == routes[routes.Count - 1])
@@ -207,7 +207,149 @@ namespace PickerRouting
                 }              
                 
             }
+            
             return subtours;
+            
+        }
+
+        private void Patching_Heuristic()
+        {
+            var subtours = new List<List<String>>();            
+            var comparison1 = new List<String>();
+            var comparison2 = new List<String>();
+            var subtourcount = new Int32();
+            var nodes_to_add = new Dictionary<String, String>();
+            var nodes_to_add1 = new Dictionary<String, String>();
+            var nodes_to_add2 = new Dictionary<String, String>();
+            var merged = new List<String>();
+            var reversedlist1 = new List<String>();
+            var reversedlist2 = new List<String>();            
+            subtours = Subtours();
+            subtours = subtours.OrderByDescending(x => x.Count).ToList();
+            while (subtours.Count != 1)
+            {
+                var mindist = Double.MaxValue;
+                comparison1 = new List<String>();
+                comparison1.AddRange(subtours[0]);
+
+                for (int j = 1; j < subtours.Count ; j++)
+                {
+                    var changed_road = new Dictionary<Double, Dictionary<String, String>>();
+                    var comparisonto = new List<String>();
+                    comparisonto.AddRange(subtours[j]);
+                    changed_road = Delta_Calculation(comparison1, comparisonto);
+                    var mindist_new = changed_road.First().Key;
+                    if (mindist > mindist_new)
+                    {
+                        nodes_to_add = new Dictionary<String, String>();
+                        nodes_to_add1 = new Dictionary<String, String>();
+                        nodes_to_add2 = new Dictionary<String, String>();
+                        comparison2 = new List<String>();
+                        subtourcount = j;
+                        comparison2.AddRange(subtours[j]);
+                        
+                        mindist = mindist_new;
+                        nodes_to_add = changed_road[mindist_new];
+                        nodes_to_add1.Add(nodes_to_add.First().Key, nodes_to_add.First().Value);
+                        nodes_to_add.Remove(nodes_to_add.First().Key);
+                        nodes_to_add2 = nodes_to_add;                        
+                    }
+
+                }
+                merged.AddRange(comparison1.Take(comparison1.IndexOf(nodes_to_add1.First().Key) + 1).ToList());
+                merged.Add(nodes_to_add1.First().Value);
+                
+                if(comparison2.IndexOf(nodes_to_add1.First().Value)> comparison2.IndexOf(nodes_to_add2.First().Value))
+                {
+                    comparison2.RemoveAt(0);
+                    reversedlist1 = comparison2.Take(comparison2.IndexOf(nodes_to_add1.First().Value)).ToList();
+                    reversedlist1.Reverse();
+                    merged.AddRange(reversedlist1);
+                    reversedlist2 = comparison2.TakeLast(comparison2.Count - comparison2.IndexOf(nodes_to_add2.First().Value)).ToList();
+                    reversedlist2.Reverse();
+                    merged.AddRange(reversedlist2);
+
+
+                }
+                else if(comparison2.IndexOf(nodes_to_add1.First().Value) < comparison2.IndexOf(nodes_to_add2.First().Value))
+                {
+                    comparison2.RemoveAt(comparison2.Count - 1);
+                    reversedlist1 = comparison2.Take(comparison2.IndexOf(nodes_to_add1.First().Value)).ToList();
+                    reversedlist1.Reverse();
+                    merged.AddRange(reversedlist1);
+                    reversedlist2 = comparison2.TakeLast(comparison2.Count - comparison2.IndexOf(nodes_to_add2.First().Value)).ToList();
+                    reversedlist2.Reverse();
+                    merged.AddRange(reversedlist2);
+
+                }
+                
+                comparison1.RemoveAt(0);
+                merged.AddRange(comparison1.TakeLast(comparison1.Count - comparison1.IndexOf(nodes_to_add2.First().Key)).ToList());
+                subtours.Remove(subtours[subtourcount]);
+                subtours[0].Clear();
+                subtours[0].AddRange(merged);
+                merged.Clear();
+                
+            }
+            Calculate_Distance(subtours);
+            
+        }
+        private Double Calculate_Distance(List<List<String>> Patched)
+        {
+            var Total_Distance = new Double();
+            
+            var maxvalue = Double.MinValue;
+            for (int i = 0; i < Patched[0].Count-1; i++)
+            {
+                var test_distance = new Double();
+                Total_Distance += d[Patched[0][i]][Patched[0][i + 1]];
+                test_distance = d[Patched[0][i]][Patched[0][i + 1]];
+                if (maxvalue < test_distance)
+                {
+                    maxvalue = test_distance;
+                }
+            }
+            return Total_Distance-maxvalue;
+        }
+        private Dictionary<Double, Dictionary<String, String>> Delta_Calculation(List<String> S1,List<String> S2)
+        {
+            var mindist = Double.MaxValue;
+            var dist_road = new Dictionary<String, String>();
+            var changed_road = new Dictionary<Double, Dictionary<String, String>>();
+            for (int i = 0; i < S1.Count-1; i++)
+            {
+                for (int j = 0; j < S2.Count-1; j++)
+                {
+                    
+                    var node1 = S1[i];
+                    var node2 = S1[i + 1];
+                    var node3 = S2[j];
+                    var node4 = S2[j + 1];
+                    var dist1 = d[node1][node3] + d[node2][node4] - d[node1][node2] - d[node3][node4];
+                    var dist2 = d[node1][node4] + d[node2][node3] - d[node1][node2] - d[node3][node4];
+                    if (mindist > dist1 )
+                    {                       
+                        dist_road = new Dictionary<String, String>();
+                        changed_road = new Dictionary<Double, Dictionary<String, String>>();
+                        mindist = dist1;
+                        dist_road.Add(node1,node3);
+                        dist_road.Add(node2, node4);
+                        changed_road.Add(mindist, dist_road);
+
+                    }
+                    else if(mindist>dist2)
+                    {   
+                        dist_road = new Dictionary<String, String>();
+                        changed_road = new Dictionary<Double, Dictionary<String, String>>();
+                        mindist = dist2;
+                        dist_road.Add(node1, node3);
+                        dist_road.Add(node2, node4);
+                        changed_road.Add(mindist, dist_road);
+                    }
+                    
+                }
+            }
+            return changed_road;
         }
         private void At_Least_3Node_Constraint()
         {   
