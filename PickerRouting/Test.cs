@@ -13,7 +13,7 @@ namespace PickerRouting
 
         private List<string> locations;
 
-        private Dictionary<string, Dictionary<string, double>> d;
+        private Dictionary<string, Dictionary<string, long>> d;
 
         private List<string> originalLocations;
 

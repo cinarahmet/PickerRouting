@@ -17,7 +17,7 @@ namespace PickerRouting
         /// <summary>
         /// d[i,j] denotes distance from location i to location j
         /// </summary>
-        private readonly Dictionary<String, Dictionary<String, Double>> d;
+        private readonly Dictionary<String, Dictionary<String, long>> d;
 
         private List<String> _locations;
 
@@ -70,7 +70,7 @@ namespace PickerRouting
 
         private Double _epsilon = 0.00001;
 
-        public Tsp_Patch_Heuristic(List<String> locations, Dictionary<String, Dictionary<String, Double>> distance, long timeLimit)
+        public Tsp_Patch_Heuristic(List<String> locations, Dictionary<String, Dictionary<String, long>> distance, long timeLimit)
         {
             _timeLimit = timeLimit;
             _solver = new Cplex();

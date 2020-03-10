@@ -12,19 +12,31 @@ namespace PickerRouting
         {
             //Test test = new Test(@"C:\Workspace\PickerRouting\veri.csv", 10);
             //test.Run();
-            var id = "TL576336";
+            var id = "TL586883";
+
             var reader = new SQLReader(id);
             var locations = new List<string>();
-            var distance = new Dictionary<String, Dictionary<String, Double>>();
-            var orig_distnace = new Double();
-            reader.Read();
             locations = reader.GetLocations();
+            var distance = new Dictionary<String, Dictionary<String, long>>();
+            var orig_distnace = new Double();            
             distance = reader.GetDistanceMatrix();
-            orig_distnace = reader.GetRouteDistance();
-            Tsp_Patch_Heuristic tsp_Patch_Heuristic = new Tsp_Patch_Heuristic(locations, distance, 100000);
-            Console.WriteLine("Hebele {0}", orig_distnace);
-            tsp_Patch_Heuristic.Run();
+            reader.Read();
+            
+            /* TestHeuristics heuristic = new TestHeuristics(@"C:\Users\cagri.iyican\Desktop\Idlist.csv", 10);
+             heuristic.Run();*/
 
+
+
+
+
+            orig_distnace = reader.GetRouteDistance();
+            
+            Console.WriteLine("Hebele {0}", orig_distnace);
+            //Tsp_Patch_Heuristic tsp_Patch_Heuristic = new Tsp_Patch_Heuristic(locations, distance, 100000);
+            //tsp_Patch_Heuristic.Run();
+            Simulated_Annealing test_heuristc = new Simulated_Annealing(locations, distance);
+            test_heuristc.Run();
+            
         }
 
     }

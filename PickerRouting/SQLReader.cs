@@ -11,7 +11,7 @@ namespace PickerRouting
         private String ID;
         private List<String> _locations;
         private List<String> _originalLocations;
-        private Dictionary<String, Dictionary<String, Double>> _DistanceMatrix;
+        private Dictionary<String, Dictionary<String, long>> _DistanceMatrix;
         private String _connectionString;
         private Double _totalDistance;
         private bool sameSize;
@@ -23,7 +23,7 @@ namespace PickerRouting
             _locations = new List<string>();
             ID = id;
             _originalLocations = new List<string>();
-            _DistanceMatrix = new Dictionary<string, Dictionary<string, double>>();
+            _DistanceMatrix = new Dictionary<string, Dictionary<string, long>>();
             _connectionString = "Data Source = WMS-SQL;" +
                 "Initial Catalog = LOSCM;" +
                 "Persist Security Info = True;" +
@@ -101,7 +101,7 @@ namespace PickerRouting
             Console.WriteLine("Reading Locations has ended at {0}", DateTime.UtcNow);
             
         }
-        public Dictionary<String, Dictionary<String, Double>> GetDistanceMatrix()
+        public Dictionary<String, Dictionary<String, long>> GetDistanceMatrix()
         {
             return _DistanceMatrix; 
         }
@@ -145,11 +145,11 @@ namespace PickerRouting
                 {
                     var fromLocation = reader.GetValue(0).ToString();
                     var toLocation = reader.GetValue(1).ToString();
-                    var dist = Convert.ToDouble(reader.GetValue(2));
+                    var dist = Convert.ToInt64(reader.GetValue(2));
 
                     if (!_DistanceMatrix.ContainsKey(fromLocation))
                     {
-                        var distances = new Dictionary<String, Double>();
+                        var distances = new Dictionary<String, long>();
                         distances.Add(toLocation, dist);
                         _DistanceMatrix.Add(fromLocation, distances);
                     }
