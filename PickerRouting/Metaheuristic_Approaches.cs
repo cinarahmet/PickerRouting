@@ -74,7 +74,7 @@ namespace PickerRouting
 
             _firstN = firstN;
 
-            _baseTimeLimit = 1;
+            _baseTimeLimit = 5;
 
             _testTimeLimit = 120;
 
@@ -98,7 +98,7 @@ namespace PickerRouting
             ReadPickListIds();
             foreach (string id in _idList)
             {
-                Read(id);
+                Read("TL586883");
                 if (sameSize)
                 {
                     _originalRouteDistances.Add(id, originalRouteDistance);

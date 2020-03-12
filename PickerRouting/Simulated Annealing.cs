@@ -17,7 +17,7 @@ namespace PickerRouting
 
         private Double Tempereature ;
 
-        private Double Epsilon = 0.001;
+        private Double Epsilon ;
 
         private Double Difference;
 
@@ -25,32 +25,7 @@ namespace PickerRouting
         
         private List<string> _route;
 
-        private List<string> _testRoute;
-
-        private Dictionary<string, List<string>> _routes;
-
-        private Dictionary<string, List<string>> _testRoutes;
-
-        private double _objValue;
-
-        private Dictionary<string, double> _objValues;
-
-        private double _testObjValue;
-
-        private Dictionary<string, double> _testObjValues;
-
-        private long _testTimeLimit;
-
-        private Dictionary<string, int> _orderCounts;
-
-        private string _fileLocation;
-
-        private bool sameSize;
-
-        private List<string> _baseTestRoute;
-
-        private double _baseObjValue;
-
+        
         private double propa;
 
         private Random random;
@@ -82,20 +57,25 @@ namespace PickerRouting
 
         private void Algorithm(List<String> locs, Dictionary<String, Dictionary<String, long>> distance)
         {
+            Console.WriteLine("Simualted annealing started at{0}", DateTime.Now);
             var old_route = new List<String>();
 
             old_route.AddRange(locs);
             alpha = 0.999;
-            Tempereature = 1000;
+            Tempereature = 700;
+            Epsilon = 0.00001;
+            var count = 0;
             while (Tempereature>Epsilon)
             {
                 iteration++;
                 var distance_old = new Double();
                 var distance_new = new Double();                
                 var new_route = new List<String>();
+                var random_select = new Int32();
+                random_select = random.Next(0, 4);
 
                 distance_old=Compute_Distance(old_route);
-                new_route=Neighborhood_Generation(old_route);
+                new_route= Select_Neighborhood_Method(old_route,random_select,10);
                 distance_new = Compute_Distance(new_route);
                 Difference = distance_new - distance_old;
 
@@ -104,6 +84,7 @@ namespace PickerRouting
                     old_route.Clear();
                     old_route = new_route;
                     distance_old = distance_old + Difference;
+                    
                 }
                 else
                 {
@@ -111,41 +92,142 @@ namespace PickerRouting
 
                     if (propa < Math.Exp(-Difference / Tempereature))
                     {
+                        count += 1;
                         old_route.Clear();
                         old_route = new_route;
                         distance_old = distance_old + Difference;
                     }
                 }
                 Tempereature *= alpha;
-                Console.WriteLine(distance_old); 
-                
+                //Console.WriteLine(distance_old); 
+
             }
             Print(old_route);
 
         }
+        
         private void Print(List<String> best_location)
         {   var best_dist = new Double();
             best_dist = Compute_Distance(best_location);
+            Console.WriteLine("Algortihm stops at {0}", DateTime.Now);
             Console.WriteLine("Best distance{0}", best_dist);
         }
-        private List<String> Neighborhood_Generation(List<String> locs)
+        private List<String> Neighborhood_Generation_2opt(List<String> locs)
         {   var indexA =new Int32();
             var indexB = new Int32();
             var temp ="";
             var revised_route= new List<String>();
             //Random 2 opt
-            indexA = random.Next(1, N - 1);
-            indexB = random.Next(1, N - 1);
+            indexA = random.Next(0, N);
+            indexB = random.Next(0, N);
             //Swap phase 
             revised_route.AddRange(locs);
-            temp = revised_route[indexA];
-            revised_route[indexA] = revised_route[indexB];
-            revised_route[indexB] = temp;
+            if (indexA != indexB)
+            {                
+                temp = revised_route[indexA];
+                revised_route[indexA] = revised_route[indexB];
+                revised_route[indexB] = temp;
+            }         
          
 
             return revised_route;
         }
+        private List<String> Neighborhood_Generation_Portional_2opt(List<String> locs)
+        {
+            var start = new Int32();
+            var end = new Int32();
+            var indexA = new Int32();
+            var indexB = new Int32();
+            var temp = "";
+            var revised_route = new List<String>();
+            //Random 2 opt
+            start=random.Next(0, N);
+            end=random.Next(start, N);
+            indexA = random.Next(start, end);
+            indexB = random.Next(start, end);
+            //Swap phase 
+            revised_route.AddRange(locs);
+            if (indexA != indexB)
+            {
+                temp = revised_route[indexA];
+                revised_route[indexA] = revised_route[indexB];
+                revised_route[indexB] = temp;
+            }
 
+
+            return revised_route;
+        }
+
+        private List<String> Neighborhood_Generation_Decided_Portional_2opt(List<String> locs, Int32 range)
+        {
+            var start = new Int32();
+            var indexA = new Int32();
+            var indexB = new Int32();
+            var temp = "";
+            var revised_route = new List<String>();
+            //Random 2 opt
+            start = random.Next(0, N-range);
+           
+            indexA = random.Next(start, start+range);
+            indexB = random.Next(start, start+range);
+            //Swap phase 
+            revised_route.AddRange(locs);
+            if (indexA != indexB)
+            {
+                temp = revised_route[indexA];
+                revised_route[indexA] = revised_route[indexB];
+                revised_route[indexB] = temp;
+            }
+
+
+            return revised_route;
+        }
+        private List<String> Neighborhood_Generation_3opt(List<String> locs)
+        {
+            var indexA = new Int32();
+            var indexB = new Int32();
+            var indexC = new Int32();
+            var temp = "";
+            var revised_route = new List<String>();
+            //Random 2 opt
+            indexA = random.Next(0, N);
+            indexB = random.Next(0, N);
+            indexC = random.Next(0, N);
+            //Swap phase 
+            revised_route.AddRange(locs);
+            if (indexA != indexB )
+            {
+                temp = revised_route[indexA];
+                revised_route[indexA] = revised_route[indexB];
+                revised_route[indexB] = revised_route[indexC];
+                revised_route[indexC] = temp;
+            }
+
+
+            return revised_route;
+        }
+        private List<String> Select_Neighborhood_Method(List<String> locs,Int32 select,Int32 Range)
+        {
+            var generated_list = new List<String>();
+
+            if (select == 1)
+            {
+                generated_list=Neighborhood_Generation_2opt(locs);
+            }
+            else if (select == 2)
+            {
+                generated_list = Neighborhood_Generation_Portional_2opt(locs);
+            }
+            else if (select == 3)
+            {
+                generated_list = Neighborhood_Generation_Decided_Portional_2opt(locs, Range);
+            }
+            else if (select==4)
+            {
+                generated_list = Neighborhood_Generation_3opt(locs);
+            }
+            return generated_list;
+        }
         private Double Compute_Distance(List<String> locs)
         {
             var total_distance = new Double();

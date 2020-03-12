@@ -10,8 +10,7 @@ namespace PickerRouting
     {
         static void Main(string[] args)
         {
-            //Test test = new Test(@"C:\Workspace\PickerRouting\veri.csv", 10);
-            //test.Run();
+           
             var id = "TL586883";
 
             var reader = new SQLReader(id);
@@ -22,9 +21,7 @@ namespace PickerRouting
             distance = reader.GetDistanceMatrix();
             reader.Read();
             
-            /* TestHeuristics heuristic = new TestHeuristics(@"C:\Users\cagri.iyican\Desktop\Idlist.csv", 10);
-             heuristic.Run();*/
-
+            
 
 
 
@@ -36,7 +33,11 @@ namespace PickerRouting
             //tsp_Patch_Heuristic.Run();
             Simulated_Annealing test_heuristc = new Simulated_Annealing(locations, distance);
             test_heuristc.Run();
-            
+            //Test test = new Test(@"C:\Workspace\PickerRouting\veri.csv", 10);
+            //test.Run();
+            //TestHeuristics heuristic = new TestHeuristics(@"C:\Users\cagri.iyican\Desktop\Idlist.csv", 10);
+            //heuristic.Run();
+
         }
 
     }
