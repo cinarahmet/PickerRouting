@@ -41,7 +41,7 @@ namespace PickerRouting
                 var orig_distance = reader.GetRouteDistance();
                 Console.WriteLine("The initial route length that picker had {0}", orig_distance);
                 var router = new Router();
-                for (int i = 0; i < 5; i++)
+                for (int i = 1; i < 5; i++)
                 {
                     var meta = i;
 
@@ -49,8 +49,8 @@ namespace PickerRouting
                     {                       
                         router.Run(locations, distance_matrix, meta);
                         var route = router.GetRoute();
-                        obj_values[j][i] = router.GetRouteLength();
-                        Console.WriteLine($"{obj_values[j][i]}");
+                        var objective= router.GetRouteLength();
+                        Console.WriteLine($"{objective}");
                     }
                     
                    

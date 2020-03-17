@@ -36,7 +36,7 @@ namespace PickerRouting
         {
             _locations=locations;
             _distances = distances;
-            this.new_loc.AddRange(_locations);
+            new_loc.AddRange(_locations);
             
 
             _meta = meta;
@@ -54,11 +54,11 @@ namespace PickerRouting
             _route = new List<string>();
 
             
-            this.new_loc.Add("Start");
+            new_loc.Add("Start");
             starts[0] = new_loc.Count - 1;
             
 
-            this.new_loc.Add("Last");
+            new_loc.Add("Last");
             tmeo[0] = new_loc.Count-1;
             RoutingIndexManager manager = new RoutingIndexManager(
                 new_loc.Count,
@@ -85,7 +85,7 @@ namespace PickerRouting
             searchParameters.FirstSolutionStrategy =
                 FirstSolutionStrategy.Types.Value.PathCheapestArc;
             searchParameters.TimeLimit = new Duration {Seconds = _timeLimit};
-            searchParameters.LocalSearchMetaheuristic = (LocalSearchMetaheuristic.Types.Value) meta;
+            searchParameters.LocalSearchMetaheuristic = (LocalSearchMetaheuristic.Types.Value) _meta;
 
             Assignment solution = routing.SolveWithParameters(searchParameters);
             
@@ -96,7 +96,7 @@ namespace PickerRouting
                 _route.Add(new_loc[manager.IndexToNode((int)index)]);
                 index = solution.Value(routing.NextVar(index));
             }
-
+            new_loc.Clear(); 
             CalculateObjective();
         }
 
