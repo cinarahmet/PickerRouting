@@ -10,19 +10,19 @@ namespace PickerRouting
 {
     public class Router
     {
-        private List<string> locations;
+        private List<string> _locations;
 
-        private Dictionary<string, Dictionary<string, long>> distances;
+        private Dictionary<string, Dictionary<string, long>> _distances;
 
         private long _timeLimit;
 
         private List<string> _route;
 
         private double _objValue;
+               
+        private int _meta;
 
-        private bool sameSize;
-
-        private int meta;
+        private List<String> new_loc = new List<string>();
 
         public Router()
         {
@@ -32,32 +32,36 @@ namespace PickerRouting
         }
 
 
-        public void Run(List<string> locations, Dictionary<string, Dictionary<string, long>> distances, int meta=2, long _timeLimit=1)
+        public void Run(List<string> locations, Dictionary<string, Dictionary<string, long>> distances, int meta, long _timeLimit=1)
         {
-            this.locations = locations;
+            _locations=locations;
+            _distances = distances;
+            this.new_loc.AddRange(_locations);
+            
 
-            this.distances = distances;
-
-            this.meta = meta;
+            _meta = meta;
 
             this._timeLimit = _timeLimit;
-
-            Adjust();
-
+            if (_meta == 1)
+            {
+                Adjust();
+            }
+            
+            
             int[] starts = new int[1];
             int[] tmeo = new int[1];
             
             _route = new List<string>();
 
             
-            locations.Add("Start");
-            starts[0] = locations.Count - 1;
+            this.new_loc.Add("Start");
+            starts[0] = new_loc.Count - 1;
             
 
-            locations.Add("Last");
-            tmeo[0] = locations.Count-1;
+            this.new_loc.Add("Last");
+            tmeo[0] = new_loc.Count-1;
             RoutingIndexManager manager = new RoutingIndexManager(
-                locations.Count,
+                new_loc.Count,
                 1,
                 starts,
                 tmeo);
@@ -70,7 +74,7 @@ namespace PickerRouting
                     // Convert from routing variable Index to distance matrix NodeIndex.
                     var fromNode = manager.IndexToNode(fromIndex);
                     var toNode = manager.IndexToNode(toIndex);
-                    return distances[locations[fromNode]][locations[toNode]];
+                    return distances[new_loc[fromNode]][new_loc[toNode]];
                 });
 
             routing.SetArcCostEvaluatorOfAllVehicles(transitCallbackIndex);
@@ -89,7 +93,7 @@ namespace PickerRouting
             var index = solution.Value(routing.NextVar(routing.Start(0)));
             while (routing.IsEnd(index) == false)
             {
-                _route.Add(locations[manager.IndexToNode((int)index)]);
+                _route.Add(new_loc[manager.IndexToNode((int)index)]);
                 index = solution.Value(routing.NextVar(index));
             }
 
@@ -100,20 +104,21 @@ namespace PickerRouting
         {
             var lastd = new Dictionary<string, long>();
             var startd = new Dictionary<string, long>();
-            foreach (var loc in locations)
+            ;
+            foreach (var loc in _locations)
             {
-                distances[loc].Add("Last", 0);
-                distances[loc].Add("Start", Int64.MaxValue);
+                _distances[loc].Add("Last", 0);
+                _distances[loc].Add("Start", Int64.MaxValue);
                 lastd.Add(loc, Int64.MaxValue);
                 startd.Add(loc, 0);
             }
-            distances.Add("Start", startd);
-            distances.Add("Last", lastd);
+            _distances.Add("Start", startd);
+            _distances.Add("Last", lastd);
 
-            distances["Start"].Add("Start", 0);
-            distances["Start"].Add("Last", 0);
-            distances["Last"].Add("Start", Int64.MaxValue);
-            distances["Last"].Add("Last", Int64.MaxValue);
+            _distances["Start"].Add("Start", 0);
+            _distances["Start"].Add("Last", 0);
+            _distances["Last"].Add("Start", Int64.MaxValue);
+            _distances["Last"].Add("Last", Int64.MaxValue);
 
         }
 
@@ -122,7 +127,7 @@ namespace PickerRouting
             _objValue = 0.0; 
             for (int i = 0; i < _route.Count - 1; i++)
             {
-                _objValue += distances[_route[i]][_route[i + 1]];
+                _objValue += _distances[_route[i]][_route[i + 1]];
             }
         }
 
