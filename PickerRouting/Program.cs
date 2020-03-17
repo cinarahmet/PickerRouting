@@ -22,22 +22,30 @@ namespace PickerRouting
             //meta için enumeration olsun mu?
             var locations = reader.GetLocations();
             var distance = reader.GetDistanceMatrix();
-            var meta = 2;
+            var orig_distance = reader.GetRouteDistance();
+            Console.WriteLine("The initial route length that picker had {0}",orig_distance);
 
-            if (reader.CheckDimensions())
+
+            for (int i = 1; i < 5; i++)
             {
-                router.Run(locations, distance);
-            }
-            else
-            {
-                //discuss
-            }
+                var meta = i;
 
-            var route = router.GetRoute();
-            var objective = router.GetRouteLength();
+                if (reader.CheckDimensions())
+                {
+                    router.Run(locations, distance);
+                }
+                else
+                {
+                    //discuss
+                }
 
-            Console.WriteLine($"{objective}");
-            Console.ReadKey();
+                var route = router.GetRoute();
+                var objective = router.GetRouteLength();
+
+                Console.WriteLine($"{objective}");
+                
+            }
+            
 
         }
 
