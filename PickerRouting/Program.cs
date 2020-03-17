@@ -14,6 +14,7 @@ namespace PickerRouting
         static void Main(string[] args)
         {
             var lines = new List<String>();
+            var problemLocations = new List<string>();
 
             using (var sr = File.OpenText(@"C:\Workspace\PickerRouting\2-6 mart picklists.csv"))
             {
@@ -24,22 +25,31 @@ namespace PickerRouting
 
                     var reader = new SQLReader(pick_list);
                     reader.Read();
-
                     var locations = reader.GetLocations();
                     var distance_matrix = reader.GetDistanceMatrix();
-                    var orig_distance = reader.GetRouteDistance();
 
-                    var router = new Router();
-                    var line = pick_list + "," + orig_distance;
-                    for (int i = 1; i <= 5; i++)
+                    if (reader.CheckDimensions())
                     {
-                        if (reader.CheckDimensions())
+                        var orig_distance = reader.GetRouteDistance();
+
+                        var router = new Router();
+                        var line = pick_list + "," + orig_distance;
+                        for (int i = 1; i <= 5; i++)
                         {
-                            router.Run(locations, distance_matrix, i);
-                            line += ", " + router.GetRouteLength();
+                            if (reader.CheckDimensions())
+                            {
+                                router.Run(locations, distance_matrix, i);
+                                line += ", " + router.GetRouteLength();
+                            }
                         }
+                        lines.Add(line);
                     }
-                    lines.Add(line);
+
+                    else
+                    {
+                        problemLocations = problemLocations.Union(locations.Except(distance_matrix.Keys).ToList()).ToList();
+                    }
+                    
                 }
             }
 
@@ -51,6 +61,13 @@ namespace PickerRouting
                 writer.WriteLine(line);
             }
             writer.Close();
+
+            StreamWriter writer2 = new StreamWriter(File.Open(@"C:\Workspace\PickerRouting\Problem Locations.csv", FileMode.Create), Encoding.UTF8);
+            foreach (var location in problemLocations)
+            {
+                writer2.WriteLine(location);
+            }
+            writer2.Close();
         }
     }
 }
