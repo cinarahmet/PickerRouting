@@ -13,60 +13,72 @@ namespace PickerRouting
     {
         static void Main(string[] args)
         {
-            var lines = new List<String>();
+
+            StreamWriter writer = new StreamWriter(File.Open(@"C:\Workspace\PickerRouting\Objective Outputs.csv", FileMode.Create), Encoding.UTF8);
+            var header = "Pick List ID, Original Route, Greedy Descent, Guided Local Search, Simulated Annealing, Tabu Search, Objective Tabu Search";
+            writer.WriteLine(header);
+
+            StreamWriter writer2 = new StreamWriter(File.Open(@"C:\Workspace\PickerRouting\Problem Locations.csv", FileMode.Create), Encoding.UTF8);
+
             var problemLocations = new List<string>();
 
             using (var sr = File.OpenText(@"C:\Workspace\PickerRouting\2-6 mart picklists.csv"))
             {
+                var a = 0;
                 var s = sr.ReadLine();
-                while ((s = sr.ReadLine()) != null)
+                for (int i = 0; i < 999; i++)
                 {
+                    s = sr.ReadLine();
+                    a++;
+                }
+                while ((s = sr.ReadLine()) != null && a<1099)
+                {
+
                     var pick_list = s.Split(',')[0];
+
+                    var newProblemLocations = new List<string>();
 
                     var reader = new SQLReader(pick_list);
                     reader.Read();
                     var locations = reader.GetLocations();
+                    //var locations = reader.GetLocations().Select(x => x.ToUpper()).ToList();
                     var distance_matrix = reader.GetDistanceMatrix();
 
                     if (reader.CheckDimensions())
                     {
                         var orig_distance = reader.GetRouteDistance();
 
-                        var router = new Router();
                         var line = pick_list + "," + orig_distance;
                         for (int i = 1; i <= 5; i++)
                         {
                             if (reader.CheckDimensions())
                             {
-                                router.Run(locations, distance_matrix, i);
+                                var router = new Router();
+                                router.Run(locations, distance_matrix, (Router.Metas)i);
                                 line += ", " + router.GetRouteLength();
                             }
                         }
-                        lines.Add(line);
+
+                        writer.WriteLine(line);
+                        writer.Flush();
                     }
 
                     else
                     {
-                        problemLocations = problemLocations.Union(locations.Except(distance_matrix.Keys).ToList()).ToList();
+                        newProblemLocations = problemLocations.Union(locations.Except(distance_matrix.Keys).ToList()).ToList().Except(problemLocations).ToList();
+                    }
+                    a++;
+
+                    foreach (var location in newProblemLocations)
+                    {
+                        writer2.WriteLine(location);
                     }
                     
+                    problemLocations = problemLocations.Union(newProblemLocations).ToList();
                 }
             }
 
-            StreamWriter writer = new StreamWriter(File.Open(@"C:\Workspace\PickerRouting\Objective Outputs.csv", FileMode.Create), Encoding.UTF8);
-            var header = "Pick List ID, Original Route, Greedy Descent, Guided Local Search, Simulated Annealing, Tabu Search, Objective Tabu Search";
-            writer.WriteLine(header);
-            foreach (var line in lines)
-            {
-                writer.WriteLine(line);
-            }
             writer.Close();
-
-            StreamWriter writer2 = new StreamWriter(File.Open(@"C:\Workspace\PickerRouting\Problem Locations.csv", FileMode.Create), Encoding.UTF8);
-            foreach (var location in problemLocations)
-            {
-                writer2.WriteLine(location);
-            }
             writer2.Close();
         }
     }

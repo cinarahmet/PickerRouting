@@ -238,6 +238,7 @@ namespace PickerRouting
         private void CalculateOriginalRouteDistance()
         {
             var totalDistance = 0.0;
+            //_originalLocations = _originalLocations.Select(x => x.ToUpper()).ToList();
             for (int i = 0; i < _originalLocations.Count - 1; i++)
             {
                 var localDistance = _DistanceMatrix[_originalLocations[i]][_originalLocations[i + 1]];
