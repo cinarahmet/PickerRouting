@@ -22,16 +22,10 @@ namespace PickerRouting
 
             var problemLocations = new List<string>();
 
-            using (var sr = File.OpenText(@"C:\Workspace\PickerRouting\2-6 mart picklists.csv"))
+            using (var sr = File.OpenText(@"C:\Workspace\PickerRouting\süpermartpicklists.csv"))
             {
-                var a = 0;
                 var s = sr.ReadLine();
-                for (int i = 0; i < 999; i++)
-                {
-                    s = sr.ReadLine();
-                    a++;
-                }
-                while ((s = sr.ReadLine()) != null && a<1099)
+                while ((s = sr.ReadLine()) != null)
                 {
 
                     var pick_list = s.Split(',')[0];
@@ -44,7 +38,7 @@ namespace PickerRouting
                     //var locations = reader.GetLocations().Select(x => x.ToUpper()).ToList();
                     var distance_matrix = reader.GetDistanceMatrix();
 
-                    if (reader.CheckDimensions())
+                    if (reader.CheckDimensions() && locations.Count>0)
                     {
                         var orig_distance = reader.GetRouteDistance();
 
@@ -67,11 +61,11 @@ namespace PickerRouting
                     {
                         newProblemLocations = problemLocations.Union(locations.Except(distance_matrix.Keys).ToList()).ToList().Except(problemLocations).ToList();
                     }
-                    a++;
 
                     foreach (var location in newProblemLocations)
                     {
                         writer2.WriteLine(location);
+                        writer2.Flush();
                     }
                     
                     problemLocations = problemLocations.Union(newProblemLocations).ToList();

@@ -34,11 +34,28 @@ namespace PickerRouting
         public void Read()
         {
             ReadLocations();
-            ReadDistanceMatrix();
             ReadOriginalPickLocations();
-            if (_locations.Count != _DistanceMatrix.Count || _locations == null)
+            if (_locations.Count == 0)
+            {
+                _locations = _originalLocations;
+            } 
+            else if (_originalLocations.Count == 0)
+            {
+                _originalLocations = _locations;
+            }
+            ReadDistanceMatrix();
+            if (_DistanceMatrix.Count==0)
+            {
+                ReadDistanceMatrix();
+            }
+            if (_locations.Count != _DistanceMatrix.Count)
             {
                 sameSize = false;
+            }
+            else if (_locations.Count == 0)
+            {
+                Console.WriteLine("Connection Failure!");
+                return;
             }
             else
             {

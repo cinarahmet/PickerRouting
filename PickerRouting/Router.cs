@@ -82,10 +82,11 @@ namespace PickerRouting
 
             _locations.Add("Start");
             starts[0] = _locations.Count - 1;
-
+            //starts[0] = 0;
 
             _locations.Add("Last");
             tmeo[0] = _locations.Count - 1;
+
             RoutingIndexManager manager = new RoutingIndexManager(
                 _locations.Count,
                 1,
