@@ -116,12 +116,14 @@ namespace PickerRouting
             Assignment solution = routing.SolveWithParameters(searchParameters);
 
             _objValue = solution.ObjectiveValue();
+            //var index = routing.Start(0);
             var index = solution.Value(routing.NextVar(routing.Start(0)));
             while (routing.IsEnd(index) == false)
             {
                 _route.Add(_locations[manager.IndexToNode((int)index)]);
                 index = solution.Value(routing.NextVar(index));
             }
+            //_route.Add(_locations[manager.IndexToNode((int)index)]);
 
             CalculateObjective();
         }

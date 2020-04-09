@@ -13,71 +13,18 @@ namespace PickerRouting
     {
         static void Main(string[] args)
         {
+            var pick_list = "TL622267";
+            var meta = 2;
 
-            StreamWriter writer = new StreamWriter(File.Open(@"C:\Workspace\PickerRouting\Objective Outputs.csv", FileMode.Create), Encoding.UTF8);
-            var header = "Pick List ID, Original Route, Greedy Descent, Guided Local Search, Simulated Annealing, Tabu Search, Objective Tabu Search";
-            writer.WriteLine(header);
+            var reader = new SQLReader(pick_list);
+            reader.Read();
 
-            StreamWriter writer2 = new StreamWriter(File.Open(@"C:\Workspace\PickerRouting\Problem Locations.csv", FileMode.Create), Encoding.UTF8);
+            var locations = reader.GetLocations();
+            var distance_matrix = reader.GetDistanceMatrix();
 
-            var problemLocations = new List<string>();
-
-            using (var sr = File.OpenText(@"C:\Workspace\PickerRouting\süpermartpicklists.csv"))
-            {
-                var s = sr.ReadLine();
-                while ((s = sr.ReadLine()) != null)
-                {
-
-                    var pick_list = s.Split(',')[0];
-
-                    var newProblemLocations = new List<string>();
-
-                    var reader = new SQLReader(pick_list);
-                    reader.Read();
-                    var locations = reader.GetLocations();
-                    //var locations = reader.GetLocations().Select(x => x.ToUpper()).ToList();
-                    var distance_matrix = reader.GetDistanceMatrix();
-
-                    if (reader.CheckDimensions() && locations.Count>0)
-                    {
-                        var orig_distance = reader.GetRouteDistance();
-
-                        var line = pick_list + "," + orig_distance;
-                        for (int i = 1; i <= 5; i++)
-                        {
-                            if (reader.CheckDimensions())
-                            {
-                                var router = new Router();
-                                router.Run(locations, distance_matrix, (Router.Metas)i);
-                                line += ", " + router.GetRouteLength();
-                            }
-                        }
-
-                        writer.WriteLine(line);
-                        writer.Flush();
-                    }
-
-                    else
-                    {
-                        newProblemLocations = problemLocations.Union(locations.Except(distance_matrix.Keys).ToList()).ToList().Except(problemLocations).ToList();
-                    }
-
-                    foreach (var location in newProblemLocations)
-                    {
-                        writer2.WriteLine(location);
-                        writer2.Flush();
-                    }
-                    
-                    problemLocations = problemLocations.Union(newProblemLocations).ToList();
-                }
-            }
-
-            writer.Close();
-            writer2.Close();
+            var router = new Router();
+            router.Run(locations, distance_matrix, (Router.Metas)meta);
+            var route = router.GetRoute();
         }
     }
 }
-
-//var id = "TL586883";                                         
-//parameters gibi bir class olsun mu?
-//meta için enumeration olsun mu?
