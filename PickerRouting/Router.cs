@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -37,6 +38,8 @@ namespace PickerRouting
         /// </summary>
         private double _objValue;
 
+        private bool _predetermined;
+
         /// <summary>
         /// Alternative meta-heuristic approaches.
         /// </summary>
@@ -62,13 +65,15 @@ namespace PickerRouting
         }
 
 
-        public void Run(List<string> locations, Dictionary<string, Dictionary<string, long>> distances, Metas meta = Metas.GuidedLocalSearch, long timeLimit = 1)
+        public void Run(List<string> locations, Dictionary<string, Dictionary<string, long>> distances, bool predetermined = true, Metas meta = Metas.GuidedLocalSearch, long timeLimit = 1)
         {
             _locations = new List<string>(locations);
 
             _distances = new Dictionary<string, Dictionary<string, long>>(distances.Select(x=>new KeyValuePair<string, Dictionary<string, long>>(x.Key,new Dictionary<string, long>(x.Value))));
 
             _meta = meta;
+
+            _predetermined = predetermined;
 
             _timeLimit = timeLimit;
 
@@ -79,13 +84,20 @@ namespace PickerRouting
 
             _route = new List<string>();
 
+            if (predetermined)
+            {
+                starts[0] = 0;
 
-            _locations.Add("Start");
-            starts[0] = _locations.Count - 1;
-            //starts[0] = 0;
+                tmeo[0] = _locations.Count - 1;
+            }
+            else
+            {
+                _locations.Add("Start");
+                starts[0] = _locations.Count - 1;
 
-            _locations.Add("Last");
-            tmeo[0] = _locations.Count - 1;
+                _locations.Add("Last");
+                tmeo[0] = _locations.Count - 1;
+            }
 
             RoutingIndexManager manager = new RoutingIndexManager(
                 _locations.Count,
@@ -116,14 +128,26 @@ namespace PickerRouting
             Assignment solution = routing.SolveWithParameters(searchParameters);
 
             _objValue = solution.ObjectiveValue();
-            //var index = routing.Start(0);
-            var index = solution.Value(routing.NextVar(routing.Start(0)));
-            while (routing.IsEnd(index) == false)
+
+            if (predetermined)
             {
+                var index = routing.Start(0);
+                while (routing.IsEnd(index) == false)
+                {
+                    _route.Add(_locations[manager.IndexToNode((int)index)]);
+                    index = solution.Value(routing.NextVar(index));
+                }
                 _route.Add(_locations[manager.IndexToNode((int)index)]);
-                index = solution.Value(routing.NextVar(index));
             }
-            //_route.Add(_locations[manager.IndexToNode((int)index)]);
+            else
+            {
+                var index = solution.Value(routing.NextVar(routing.Start(0)));
+                while (routing.IsEnd(index) == false)
+                {
+                    _route.Add(_locations[manager.IndexToNode((int)index)]);
+                    index = solution.Value(routing.NextVar(index));
+                }
+            }
 
             CalculateObjective();
         }
