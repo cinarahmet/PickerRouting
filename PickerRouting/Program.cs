@@ -15,6 +15,7 @@ namespace PickerRouting
         {
             var pick_list = "TL622267";
             var meta = 2;
+            var run_type = Picker_Run_Type.RunType.determined_start_end;
 
             var reader = new SQLReader(pick_list);
             reader.Read();
@@ -23,7 +24,7 @@ namespace PickerRouting
             var distance_matrix = reader.GetDistanceMatrix();
 
             var router = new Router();
-            router.Run(locations, distance_matrix, (Router.Metas)meta);
+            router.Run(run_type, locations, distance_matrix, (Router.Metas)meta);
             var route = router.GetRoute();
         }
     }

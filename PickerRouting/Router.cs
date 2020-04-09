@@ -7,6 +7,8 @@ using Google.OrTools.ConstraintSolver;
 using Google.Protobuf.WellKnownTypes;
 using Enum = System.Enum;
 
+
+
 namespace PickerRouting
 {
     public class Router
@@ -15,6 +17,11 @@ namespace PickerRouting
         /// List of locations picker must visit.
         /// </summary>
         private List<string> _locations;
+
+        /// <summary>
+        /// Type of the Run 
+        /// </summary>
+        private Picker_Run_Type.RunType _type;
 
         /// <summary>
         /// Dictionary (a,b)-->c
@@ -48,7 +55,6 @@ namespace PickerRouting
             TabuSearch = 4,
             ObjectiveTabuSearch = 5
         }
-
         /// <summary>
         /// Selected meta-heuristic approach to route. 
         /// </summary>
@@ -62,8 +68,10 @@ namespace PickerRouting
         }
 
 
-        public void Run(List<string> locations, Dictionary<string, Dictionary<string, long>> distances, Metas meta = Metas.GuidedLocalSearch, long timeLimit = 1)
+        public void Run(Picker_Run_Type.RunType type ,List<string> locations, Dictionary<string, Dictionary<string, long>> distances, Metas meta = Metas.GuidedLocalSearch, long timeLimit = 1)
         {
+
+        
             _locations = new List<string>(locations);
 
             _distances = new Dictionary<string, Dictionary<string, long>>(distances.Select(x=>new KeyValuePair<string, Dictionary<string, long>>(x.Key,new Dictionary<string, long>(x.Value))));
@@ -72,20 +80,30 @@ namespace PickerRouting
 
             _timeLimit = timeLimit;
 
-            Adjust();
+            _type = type;
+            
+
 
             int[] starts = new int[1];
             int[] tmeo = new int[1];
 
             _route = new List<string>();
 
+            if (_type==Picker_Run_Type.RunType.determined_start_end)
+            {
+                starts[0] = 0;
+                tmeo[0] = _locations.Count - 1;
+            }
+            else
+            {
+                Adjust();
+                _locations.Add("Start");
+                starts[0] = _locations.Count - 1;
+                _locations.Add("Last");
+                tmeo[0] = _locations.Count - 1;
+            }
 
-            _locations.Add("Start");
-            starts[0] = _locations.Count - 1;
-            //starts[0] = 0;
-
-            _locations.Add("Last");
-            tmeo[0] = _locations.Count - 1;
+          
 
             RoutingIndexManager manager = new RoutingIndexManager(
                 _locations.Count,
