@@ -31,37 +31,46 @@ namespace PickerRouting
                 "Password = @cS_905/*_";
             sameSize = true;
         }
+
         public void Read()
         {
             ReadLocations();
-            ReadOriginalPickLocations();
-            if (_locations.Count == 0)
-            {
-                _locations = _originalLocations;
-            } 
-            else if (_originalLocations.Count == 0)
-            {
-                _originalLocations = _locations;
-            }
+            
             ReadDistanceMatrix();
-            if (_DistanceMatrix.Count==0)
-            {
-                ReadDistanceMatrix();
-            }
-            if (_locations.Count != _DistanceMatrix.Count)
-            {
-                sameSize = false;
-            }
-            else if (_locations.Count == 0)
-            {
-                Console.WriteLine("Connection Failure!");
-                return;
-            }
-            else
-            {
-                CalculateOriginalRouteDistance();
-            }
         }
+
+        //public void Read()
+        //{
+        //    ReadLocations();
+        //    ReadOriginalPickLocations();
+        //    if (_locations.Count == 0)
+        //    {
+        //        _locations = _originalLocations;
+        //    }
+        //    // test ederken bu else if kapatılmalı
+        //    else if (_originalLocations.Count == 0)
+        //    {
+        //        _originalLocations = _locations;
+        //    }
+        //    ReadDistanceMatrix();
+        //    if (_DistanceMatrix.Count==0)
+        //    {
+        //        ReadDistanceMatrix();
+        //    }
+        //    if (_locations.Count != _DistanceMatrix.Count)
+        //    {
+        //        sameSize = false;
+        //    }
+        //    else if (_locations.Count == 0)
+        //    {
+        //        Console.WriteLine("Connection Failure!");
+        //        return;
+        //    }
+        //    else
+        //    {
+        //        CalculateOriginalRouteDistance();
+        //    }
+        //}
         private void ReadLocations()
         {
 
@@ -190,89 +199,89 @@ namespace PickerRouting
 
         }
 
-        private void ReadOriginalPickLocations()
-        {
+        //private void ReadOriginalPickLocations()
+        //{
 
-            Console.WriteLine("Reading Locations matrix has started at {0}", DateTime.UtcNow);
+        //    Console.WriteLine("Reading Locations matrix has started at {0}", DateTime.UtcNow);
 
-            //var connecionString = "Data Source = WMS-SQL;" +
-            //    "Initial Catalog = LOSCM;" +
-            //    "Persist Security Info = True;" +
-            //    "User ID = access_user;" +
-            //    "Password = @cS_905/*_";
+        //    //var connecionString = "Data Source = WMS-SQL;" +
+        //    //    "Initial Catalog = LOSCM;" +
+        //    //    "Persist Security Info = True;" +
+        //    //    "User ID = access_user;" +
+        //    //    "Password = @cS_905/*_";
 
 
 
-            var connection = new SqlConnection(_connectionString);
-            try
-            {
-                connection.Open();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
-            }
+        //    var connection = new SqlConnection(_connectionString);
+        //    try
+        //    {
+        //        connection.Open();
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Console.WriteLine(e.ToString());
+        //    }
 
-            try
-            {
-                var query = "select DISTINCT(LEFT(WL.LOCA_CODE,8)),WT.WATA_ACTUALFINISHDATE " +
-                    "from CVLWMS_WAREHOUSETASKPROCESSINGWEBSTORE WT with (nolock) INNER JOIN " +
-                    "LWMS_LOCATION WL WITH (NOLOCK) ON WT.WATA_FROMLOCATIONID = WL.LOCA_ID " +
-                    "where PRGR_ID = 2 " +
-                    "AND WRHS_ID = 140 " +
-                    "AND WATT_ID = 4 " +
-                    "and WL.LOCA_WAREHOUSEID = 140 " +
-                    "AND PILI_CODE ='" + (ID) + "'" +
-                    "ORDER BY WT.WATA_ACTUALFINISHDATE ASC"
-                    ;
+        //    try
+        //    {
+        //        var query = "select DISTINCT(LEFT(WL.LOCA_CODE,8)),WT.WATA_ACTUALFINISHDATE " +
+        //            "from CVLWMS_WAREHOUSETASKPROCESSINGWEBSTORE WT with (nolock) INNER JOIN " +
+        //            "LWMS_LOCATION WL WITH (NOLOCK) ON WT.WATA_FROMLOCATIONID = WL.LOCA_ID " +
+        //            "where PRGR_ID = 2 " +
+        //            "AND WRHS_ID = 140 " +
+        //            "AND WATT_ID = 4 " +
+        //            "and WL.LOCA_WAREHOUSEID = 140 " +
+        //            "AND PILI_CODE ='" + (ID) + "'" +
+        //            "ORDER BY WT.WATA_ACTUALFINISHDATE ASC"
+        //            ;
 
-                SqlCommand myCommand = new SqlCommand(query, connection);
+        //        SqlCommand myCommand = new SqlCommand(query, connection);
 
-                var reader = myCommand.ExecuteReader();
+        //        var reader = myCommand.ExecuteReader();
 
-                while (reader.Read())
-                {
-                    var loc = reader.GetValue(0).ToString();
-                    if (!_originalLocations.Contains(loc))
-                        _originalLocations.Add(loc);
-                }
-                reader.Close();
-                connection.Close();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
-            }
-            Console.WriteLine("Reading Locations has ended at {0}", DateTime.UtcNow);
+        //        while (reader.Read())
+        //        {
+        //            var loc = reader.GetValue(0).ToString();
+        //            if (!_originalLocations.Contains(loc))
+        //                _originalLocations.Add(loc);
+        //        }
+        //        reader.Close();
+        //        connection.Close();
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Console.WriteLine(e.ToString());
+        //    }
+        //    Console.WriteLine("Reading Locations has ended at {0}", DateTime.UtcNow);
 
-        }
+        //}
 
-        public List<String> GetOriginalPickLocations()
-        {
-            return _originalLocations;
-        }
+        //public List<String> GetOriginalPickLocations()
+        //{
+        //    return _originalLocations;
+        //}
 
-        private void CalculateOriginalRouteDistance()
-        {
-            var totalDistance = 0.0;
-            //_originalLocations = _originalLocations.Select(x => x.ToUpper()).ToList();
-            for (int i = 0; i < _originalLocations.Count - 1; i++)
-            {
-                var localDistance = _DistanceMatrix[_originalLocations[i]][_originalLocations[i + 1]];
-                totalDistance = totalDistance + localDistance;
-            }
-            _totalDistance = totalDistance;
-        }
+        //private void CalculateOriginalRouteDistance()
+        //{
+        //    var totalDistance = 0.0;
+        //    //_originalLocations = _originalLocations.Select(x => x.ToUpper()).ToList();
+        //    for (int i = 0; i < _originalLocations.Count - 1; i++)
+        //    {
+        //        var localDistance = _DistanceMatrix[_originalLocations[i]][_originalLocations[i + 1]];
+        //        totalDistance = totalDistance + localDistance;
+        //    }
+        //    _totalDistance = totalDistance;
+        //}
 
-        public Double GetRouteDistance()
-        {
-            return _totalDistance;
-        }
+        //public Double GetRouteDistance()
+        //{
+        //    return _totalDistance;
+        //}
 
-        public bool CheckDimensions()
-        {
-            return sameSize;
-        }
+        //public bool CheckDimensions()
+        //{
+        //    return sameSize;
+        //}
 
     }
 }
