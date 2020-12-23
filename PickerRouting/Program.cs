@@ -13,7 +13,7 @@ namespace PickerRouting
     {
         static void Main(string[] args)
         {
-            var pick_list = "TL622267";
+            var pick_list = "TL614571";
             var meta = AlgorithmType.Metas.GuidedLocalSearch;
 
             var reader = new SQLReader(pick_list);

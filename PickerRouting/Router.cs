@@ -139,7 +139,7 @@ namespace PickerRouting
 
                 foreach (var k in keys)
                 {
-                    if (zone != k.Split(".")[0])
+                    if (zone == k.Split(".")[0])
                     {
                         foreach (var item in list)
                         {
