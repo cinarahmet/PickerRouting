@@ -14,8 +14,7 @@ namespace PickerRouting
         static void Main(string[] args)
         {
             var pick_list = "TL622267";
-            var meta = 2;
-            var run_type = Picker_Run_Type.RunType.determined_start_end;
+            var meta = AlgorithmType.Metas.GuidedLocalSearch;
 
             var reader = new SQLReader(pick_list);
             reader.Read();
@@ -25,7 +24,7 @@ namespace PickerRouting
 
             var router = new Router();
 
-            router.Run(run_type, locations, distance_matrix, (Router.Metas)meta);
+            router.Run(locations, distance_matrix, meta);
 
             var route = router.GetRoute();
         }

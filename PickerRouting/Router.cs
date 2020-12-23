@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using Google.OrTools.ConstraintSolver;
 using Google.Protobuf.WellKnownTypes;
@@ -18,11 +19,6 @@ namespace PickerRouting
         /// List of locations picker must visit.
         /// </summary>
         private List<string> _locations;
-
-        /// <summary>
-        /// Type of the Run 
-        /// </summary>
-        private Picker_Run_Type.RunType _type;
 
         /// <summary>
         /// Dictionary (a,b)-->c
@@ -60,20 +56,19 @@ namespace PickerRouting
         }
 
 
-        public void Run(Picker_Run_Type.RunType type ,List<string> locations, Dictionary<string, Dictionary<string, long>> distances, AlgorithmType.Metas meta, long timeLimit = 1)
+        public void Run(List<string> locations, Dictionary<string, Dictionary<string, long>> distances, AlgorithmType.Metas meta, long timeLimit = 1)
         {
        
             _locations = new List<string>(locations);
 
             _distances = new Dictionary<string, Dictionary<string, long>>(distances.Select(x=>new KeyValuePair<string, Dictionary<string, long>>(x.Key,new Dictionary<string, long>(x.Value))));
 
+            AdjustDistanceMatrix();
+
             _meta = meta;
 
             _timeLimit = timeLimit;
-
-            _type = type;
             
-
 
             int[] starts = new int[1];
             int[] end = new int[1];
@@ -81,19 +76,9 @@ namespace PickerRouting
             _route = new List<string>();
 
 
-            if (_type==Picker_Run_Type.RunType.determined_start_end)
-            {
-                starts[0] = 0;
-                end[0] = _locations.Count - 1;
-            }
-            else
-            {
-                Adjust();
-                _locations.Add("Start");
-                starts[0] = _locations.Count - 1;
-                _locations.Add("Last");
-                end[0] = _locations.Count - 1;
-            }
+
+            starts[0] = 0;
+            end[0] = _locations.Count - 1;
 
             RoutingIndexManager manager = new RoutingIndexManager(
                 _locations.Count,
@@ -125,48 +110,44 @@ namespace PickerRouting
 
             _objValue = solution.ObjectiveValue();
 
-            if (_type == Picker_Run_Type.RunType.determined_start_end)
+            
+            var index = routing.Start(0);
+            while (routing.IsEnd(index) == false)
             {
-                var index = routing.Start(0);
-                while (routing.IsEnd(index) == false)
-                {
-                    _route.Add(_locations[manager.IndexToNode((int)index)]);
-                    index = solution.Value(routing.NextVar(index));
-                }
                 _route.Add(_locations[manager.IndexToNode((int)index)]);
+                index = solution.Value(routing.NextVar(index));
             }
-            else
-            {
-                var index = solution.Value(routing.NextVar(routing.Start(0)));
-                while (routing.IsEnd(index) == false)
-                {
-                    _route.Add(_locations[manager.IndexToNode((int)index)]);
-                    index = solution.Value(routing.NextVar(index));
-                }
-            }
+            _route.Add(_locations[manager.IndexToNode((int)index)]);
+            
 
             CalculateObjective();
         }
 
-        private void Adjust()
+        private void AdjustDistanceMatrix()
         {
-            var lastd = new Dictionary<string, long>();
-            var startd = new Dictionary<string, long>();
-            foreach (var loc in _locations)
+            var keys = _distances.Keys.ToList();
+            var zones = keys.Select(a => a.Split(".")[0]);
+
+            if (zones.Distinct().Count() == 1)
             {
-                _distances[loc].Add("Last", 0);
-                _distances[loc].Add("Start", Int64.MaxValue);
-                lastd.Add(loc, Int64.MaxValue);
-                startd.Add(loc, 0);
+                return;
             }
-            _distances.Add("Start", startd);
-            _distances.Add("Last", lastd);
 
-            _distances["Start"].Add("Start", 0);
-            _distances["Start"].Add("Last", 0);
-            _distances["Last"].Add("Start", Int64.MaxValue);
-            _distances["Last"].Add("Last", Int64.MaxValue);
+            foreach (var zone in zones.Distinct())
+            {
+                var list = keys.Where(a => a.Split(".")[0] != zone).ToList();
 
+                foreach (var k in keys)
+                {
+                    if (zone != k.Split(".")[0])
+                    {
+                        foreach (var item in list)
+                        {
+                            _distances[k].Add(item, Int32.MaxValue / (zones.Distinct().Count() + 1));
+                        }
+                    }
+                }
+            }
         }
 
         private void CalculateObjective()
