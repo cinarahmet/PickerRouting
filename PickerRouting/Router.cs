@@ -68,59 +68,67 @@ namespace PickerRouting
             _meta = meta;
 
             _timeLimit = timeLimit;
-            
-
-            int[] starts = new int[1];
-            int[] end = new int[1];
-
-            _route = new List<string>();
 
 
-
-            starts[0] = 0;
-            end[0] = _locations.Count - 1;
-
-            RoutingIndexManager manager = new RoutingIndexManager(
-                _locations.Count,
-                1,
-                starts,
-                end);
-
-            RoutingModel routing = new RoutingModel(manager);
-
-            int transitCallbackIndex = routing.RegisterTransitCallback(
-                (long fromIndex, long toIndex) =>
-                {
-                // Convert from routing variable Index to distance matrix NodeIndex.
-                var fromNode = manager.IndexToNode(fromIndex);
-                    var toNode = manager.IndexToNode(toIndex);
-                    return _distances[_locations[fromNode]][_locations[toNode]];
-                });
-
-            routing.SetArcCostEvaluatorOfAllVehicles(transitCallbackIndex);
-
-            RoutingSearchParameters searchParameters =
-                operations_research_constraint_solver.DefaultRoutingSearchParameters();
-            searchParameters.FirstSolutionStrategy =
-                FirstSolutionStrategy.Types.Value.PathCheapestArc;
-            searchParameters.TimeLimit = new Duration { Seconds = _timeLimit };
-            searchParameters.LocalSearchMetaheuristic = (LocalSearchMetaheuristic.Types.Value) _meta;
-
-            Assignment solution = routing.SolveWithParameters(searchParameters);
-
-            _objValue = solution.ObjectiveValue();
-
-            
-            var index = routing.Start(0);
-            while (routing.IsEnd(index) == false)
+            try
             {
-                _route.Add(_locations[manager.IndexToNode((int)index)]);
-                index = solution.Value(routing.NextVar(index));
-            }
-            _route.Add(_locations[manager.IndexToNode((int)index)]);
-            
+                int[] starts = new int[1];
+                int[] end = new int[1];
 
-            CalculateObjective();
+                _route = new List<string>();
+
+
+
+                starts[0] = 0;
+                end[0] = _locations.Count - 1;
+
+                RoutingIndexManager manager = new RoutingIndexManager(
+                    _locations.Count,
+                    1,
+                    starts,
+                    end);
+
+                RoutingModel routing = new RoutingModel(manager);
+
+                int transitCallbackIndex = routing.RegisterTransitCallback(
+                    (long fromIndex, long toIndex) =>
+                    {
+                    // Convert from routing variable Index to distance matrix NodeIndex.
+                    var fromNode = manager.IndexToNode(fromIndex);
+                        var toNode = manager.IndexToNode(toIndex);
+                        return _distances[_locations[fromNode]][_locations[toNode]];
+                    });
+
+                routing.SetArcCostEvaluatorOfAllVehicles(transitCallbackIndex);
+
+                RoutingSearchParameters searchParameters =
+                    operations_research_constraint_solver.DefaultRoutingSearchParameters();
+                searchParameters.FirstSolutionStrategy =
+                    FirstSolutionStrategy.Types.Value.PathCheapestArc;
+                searchParameters.TimeLimit = new Duration { Seconds = _timeLimit };
+                searchParameters.LocalSearchMetaheuristic = (LocalSearchMetaheuristic.Types.Value)_meta;
+
+                Assignment solution = routing.SolveWithParameters(searchParameters);
+
+                _objValue = solution.ObjectiveValue();
+
+
+                var index = routing.Start(0);
+                while (routing.IsEnd(index) == false)
+                {
+                    _route.Add(_locations[manager.IndexToNode((int)index)]);
+                    index = solution.Value(routing.NextVar(index));
+                }
+                _route.Add(_locations[manager.IndexToNode((int)index)]);
+            }
+            catch (Exception e)
+            {
+
+                _route = _locations;
+
+            }
+                    
+            //CalculateObjective();
         }
 
         private void AdjustDistanceMatrix()
